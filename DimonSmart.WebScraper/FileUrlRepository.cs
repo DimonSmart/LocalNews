@@ -8,14 +8,13 @@ public class FileUrlRepository : IUrlRepository
     public FileUrlRepository(string filePath)
     {
         _filePath = filePath;
-        _urls = new HashSet<string>();
+        _urls = [];
 
-        if (File.Exists(_filePath))
+        if (!File.Exists(_filePath)) return;
+
+        foreach (var line in File.ReadAllLines(_filePath))
         {
-            foreach (var line in File.ReadAllLines(_filePath))
-            {
-                _urls.Add(line);
-            }
+            _urls.Add(line);
         }
     }
 

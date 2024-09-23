@@ -1,6 +1,6 @@
 ﻿namespace DimonSmart.WebScraper;
 
-public enum WorkerStatus
+public enum WebScraperWorkerStatus
 {
     Waiting,
     Working

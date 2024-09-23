@@ -1,124 +1,86 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
-namespace DimonSmart.WebScraper;
-
-public class WebScraper
+namespace DimonSmart.WebScraper
 {
-    private readonly BlockingCollection<DownloadRequest> _requestQueue = new();
-    private readonly ConcurrentBag<ScrapeResult> _results = new();
-    private readonly List<ScraperWorkerStatus> _workerStatuses = new();
-    private int _activeThreads;
-    private readonly int _maxThreads;
-    private bool _isWorkComplete;
-
-    private readonly IPageDownloader _pageDownloader;
-    private readonly IPageHandler _pageHandler;
-    private readonly IPageStorage _pageStorage;
-    private readonly ILogger _logger;
-    private readonly IUrlQueueManager _urlQueueManager;
-
-    public WebScraper(int maxThreads, IPageDownloader pageDownloader, IPageHandler pageHandler, IPageStorage pageStorage, ILogger logger, IUrlQueueManager urlQueueManager)
+    public class WebScraper
     {
-        _maxThreads = maxThreads;
-        _pageDownloader = pageDownloader;
-        _pageHandler = pageHandler;
-        _pageStorage = pageStorage;
-        _logger = logger;
-        _urlQueueManager = urlQueueManager;
-    }
+        private readonly BlockingCollection<DownloadRequest> _requestQueue = new();
+        private readonly ConcurrentBag<ScrapeResult> _results = new();
+        private readonly List<DownloadWorker> _workers = new();
+        private readonly int _maxThreads;
 
-    public async Task<IReadOnlyCollection<ScrapeResult>> ScrapAsync(IEnumerable<DownloadRequest> initialRequests)
-    {
-        var consumerTasks = StartConsumers();
+        private readonly IPageDownloader _pageDownloader;
+        private readonly IPageHandler _pageHandler;
+        private readonly IPageStorage _pageStorage;
+        private readonly ILogger _logger;
+        private readonly IUrlQueueManager _urlQueueManager;
 
-        foreach (var request in initialRequests)
+        private int _pendingTasks;
+
+        public WebScraper(int maxThreads, IPageDownloader pageDownloader, IPageHandler pageHandler, IPageStorage pageStorage, ILogger logger, IUrlQueueManager urlQueueManager)
         {
-            if (_urlQueueManager.CanAddUrl(request.Url))
-            {
-                _requestQueue.Add(request);
-            }
+            _maxThreads = maxThreads;
+            _pageDownloader = pageDownloader;
+            _pageHandler = pageHandler;
+            _pageStorage = pageStorage;
+            _logger = logger;
+            _urlQueueManager = urlQueueManager;
         }
 
-        await Task.WhenAll(consumerTasks);
-        return _results.ToList();
-    }
-
-    private Task[] StartConsumers()
-    {
-        var consumerTasks = new Task[_maxThreads];
-        for (var i = 0; i < _maxThreads; i++)
+        public async Task<IReadOnlyCollection<ScrapeResult>> ScrapAsync(IEnumerable<DownloadRequest> initialRequests)
         {
-            var workerIndex = i;
-            _workerStatuses.Add(new ScraperWorkerStatus());
-            consumerTasks[i] = Task.Run(() => ConsumeAsync(workerIndex));
+            foreach (var request in initialRequests)
+            {
+                if (_urlQueueManager.CanAddUrl(request.Url))
+                {
+                    EnqueueRequest(request);
+                }
+            }
+
+            var consumerTasks = StartConsumers();
+
+            await Task.WhenAll(consumerTasks);
+
+            return _results.ToList();
         }
-        return consumerTasks;
-    }
 
-    private async Task ConsumeAsync(int workerIndex)
-    {
-        var workerStatus = _workerStatuses[workerIndex];
-
-        while (!_requestQueue.IsCompleted || _requestQueue.Count > 0)
+        private void EnqueueRequest(DownloadRequest request)
         {
-            DownloadRequest request;
+            _requestQueue.Add(request);
+            Interlocked.Increment(ref _pendingTasks);
+        }
 
-            lock (this)
+        private Task[] StartConsumers()
+        {
+            var consumerTasks = new Task[_maxThreads];
+
+            for (var i = 0; i < _maxThreads; i++)
             {
-                while (_requestQueue.Count == 0 && !_isWorkComplete)
-                {
-                    workerStatus.SetWaitStatus();
-                    Monitor.Wait(this);
-                }
+                var worker = new DownloadWorker(
+                    _requestQueue,
+                    _results,
+                    _pageDownloader,
+                    _pageHandler,
+                    _pageStorage,
+                    _logger,
+                    _urlQueueManager,
+                    CheckCompletion);
 
-                if (_isWorkComplete)
-                    break;
+                _workers.Add(worker);
 
-                if (_requestQueue.TryTake(out request))
-                {
-                    Interlocked.Increment(ref _activeThreads);
-                    workerStatus.SetWorkingStatus(request.Url);
-                }
+                consumerTasks[i] = Task.Run(() => worker.RunAsync());
             }
 
-            try
+            return consumerTasks;
+        }
+
+        private void CheckCompletion()
+        {
+            if (Interlocked.Decrement(ref _pendingTasks) == 0)
             {
-                var pageContent = await _pageDownloader.DownloadPageContentAsync(request.Url);
-                if (pageContent != null)
-                {
-                    long pageSize = pageContent.Length;
-                    _results.Add(new ScrapeResult { Url = request.Url, PageContent = pageContent });
-                    workerStatus.AddProcessedData(pageSize);
-
-                    var scrapedPage = new ScrapedWebPage(request.Url, pageContent);
-                    await _pageStorage.SavePageAsync(scrapedPage);
-
-                    if (request.Level > 0)
-                    {
-                        var links = _pageHandler.ExtractLinksFromPage(pageContent, request.Url);
-
-                        foreach (var link in links.Distinct())
-                        {
-                            if (_urlQueueManager.CanAddUrl(link))
-                            {
-                                _requestQueue.Add(new DownloadRequest(link, request.Level - 1));
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error processing URL {request.Url}: {ex.Message}");
-            }
-
-            Interlocked.Decrement(ref _activeThreads);
-
-            lock (this)
-            {
-                if (_requestQueue.Count != 0 || _activeThreads != 0) continue;
-                _isWorkComplete = true;
-                Monitor.PulseAll(this);
+                // All tasks are completed, complete the queue
+                _requestQueue.CompleteAdding();
             }
         }
     }
