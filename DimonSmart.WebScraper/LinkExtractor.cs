@@ -2,7 +2,7 @@
 
 namespace DimonSmart.WebScraper;
 
-public class LinkExtractor : IPageHandler
+public class LinkExtractor : ILinkExtractor
 {
     public IEnumerable<string> ExtractLinksFromPage(string pageContent, string baseUrl)
     {

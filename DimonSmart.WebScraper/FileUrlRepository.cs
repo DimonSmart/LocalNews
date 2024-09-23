@@ -1,33 +1,57 @@
-﻿namespace DimonSmart.WebScraper;
+﻿using Microsoft.Extensions.Options;
+
+namespace DimonSmart.WebScraper;
 
 public class FileUrlRepository : IUrlRepository
 {
-    private readonly string _filePath;
-    private readonly HashSet<string> _urls;
+    private readonly HashSet<string> _prohibitedDomains = [];
+    private readonly HashSet<string> _prohibitedUrls = [];
+    private readonly WebScraperSettings _settings;
 
-    public FileUrlRepository(string filePath)
+    public FileUrlRepository(IOptions<WebScraperSettings> settings)
     {
-        _filePath = filePath;
-        _urls = [];
+        _settings = settings.Value;
 
-        if (!File.Exists(_filePath)) return;
+        if (!File.Exists(_settings.ProhibitedUrlsFileName))
+            return;
 
-        foreach (var line in File.ReadAllLines(_filePath))
+        foreach (var line in File.ReadAllLines(_settings.ProhibitedUrlsFileName))
         {
-            _urls.Add(line);
+            var trimmedLine = line.Trim();
+
+            if (string.IsNullOrWhiteSpace(trimmedLine) || trimmedLine.StartsWith("#"))
+                continue;
+
+            var lowerLine = trimmedLine.ToLowerInvariant();
+
+            if (Uri.TryCreate(lowerLine, UriKind.Absolute, out var uri) &&
+                (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+            {
+                _prohibitedUrls.Add(lowerLine);
+            }
+            else
+            {
+                _prohibitedDomains.Add(lowerLine);
+            }
         }
     }
 
-    public bool Contains(string url)
+    public bool ContainsProhibitedUrl(string url)
     {
-        return _urls.Contains(url);
-    }
+        var lowerUrl = url.ToLowerInvariant();
 
-    public void Add(string url)
-    {
-        if (_urls.Add(url))
+        if (_prohibitedUrls.Contains(lowerUrl))
+            return true;
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uriResult))
         {
-            File.AppendAllText(_filePath, url + "\n");
+            return false;
         }
+
+        var host = uriResult.Host.ToLowerInvariant();
+
+        return _prohibitedDomains.Any(domain =>
+            host == domain || host.EndsWith("." + domain));
+
     }
 }
