@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Serilog;
 
 namespace DimonSmart.WebScraper;
 
@@ -8,14 +9,14 @@ public class WebScraper
     private readonly int _maxThreads;
 
     private readonly IPageDownloader _pageDownloader;
-    private readonly IPageHandler _pageHandler;
+    private readonly ILinkExtractor _pageHandler;
     private readonly IPageStorage _pageStorage;
     private readonly BlockingCollection<DownloadRequest> _requestQueue = new();
     private readonly ConcurrentBag<ScrapeResult> _results = new();
     private readonly IUrlQueueManager _urlQueueManager;
     private readonly List<DownloadWorker> _workers = new();
 
-    public WebScraper(int maxThreads, IPageDownloader pageDownloader, IPageHandler pageHandler,
+    public WebScraper(int maxThreads, IPageDownloader pageDownloader, ILinkExtractor pageHandler,
         IPageStorage pageStorage, ILogger logger, IUrlQueueManager urlQueueManager)
     {
         _maxThreads = maxThreads;

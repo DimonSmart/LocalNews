@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimonSmart.WebScraper", "DimonSmart.WebScraper\DimonSmart.WebScraper.csproj", "{AE9EE8C5-EBE6-438D-ADF7-073F1A7E60EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DimonSmart.WebScraper", "DimonSmart.WebScraper\DimonSmart.WebScraper.csproj", "{AE9EE8C5-EBE6-438D-ADF7-073F1A7E60EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimonSmart.WebScraper.Tests", "DimonSmart.WebScraper.Tests\DimonSmart.WebScraper.Tests.csproj", "{AF43A971-8B4E-4B9E-83C2-120B1375D3C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DimonSmart.WebScraper.Tests", "DimonSmart.WebScraper.Tests\DimonSmart.WebScraper.Tests.csproj", "{AF43A971-8B4E-4B9E-83C2-120B1375D3C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DimonSmart.WebScraper.Console", "DimonSmart.WebScraper.Console\DimonSmart.WebScraper.Console.csproj", "{505BD32E-24F1-4706-A3BD-19D4BBE6A421}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{AF43A971-8B4E-4B9E-83C2-120B1375D3C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF43A971-8B4E-4B9E-83C2-120B1375D3C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF43A971-8B4E-4B9E-83C2-120B1375D3C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{505BD32E-24F1-4706-A3BD-19D4BBE6A421}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{505BD32E-24F1-4706-A3BD-19D4BBE6A421}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{505BD32E-24F1-4706-A3BD-19D4BBE6A421}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{505BD32E-24F1-4706-A3BD-19D4BBE6A421}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

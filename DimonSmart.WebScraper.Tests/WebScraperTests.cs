@@ -1,4 +1,5 @@
 using Moq;
+using Serilog;
 
 namespace DimonSmart.WebScraper.Tests;
 
@@ -9,7 +10,7 @@ public class WebScraperTests
     {
         // Arrange
         var mockPageDownloader = new Mock<IPageDownloader>();
-        var mockPageHandler = new Mock<IPageHandler>();
+        var mockPageHandler = new Mock<ILinkExtractor>();
         var mockPageStorage = new Mock<IPageStorage>();
         var mockLogger = new Mock<ILogger>();
         var mockUrlQueueManager = new Mock<IUrlQueueManager>();
