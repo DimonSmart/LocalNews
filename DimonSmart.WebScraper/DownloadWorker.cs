@@ -21,6 +21,7 @@ public class DownloadWorker(
             WorkerStatus.SetWorkingStatus(request.Url);
             await DoDownload(request);
             WorkerStatus.SetWaitStatus();
+            onDownloadCompleted();
         }
     }
 
@@ -48,7 +49,5 @@ public class DownloadWorker(
                 }
             }
         }
-
-        onDownloadCompleted();
     }
 }
