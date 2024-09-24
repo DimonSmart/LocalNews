@@ -9,27 +9,27 @@ namespace DimonSmart.WebScraper
         private IPlaywright? _playwright;
         private bool _isInitialized;
 
-        private async Task<IBrowser> InitializeAsync()
+        private async Task<IPage> GetNewPageAsync()
         {
-            if (_isInitialized) return _browser ?? throw new InvalidOperationException("Browser is not initialized");
-            _isInitialized = true;
-
-            _playwright = await Playwright.CreateAsync();
-            _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            if (!_isInitialized)
             {
-                Headless = true
-            });
+                _playwright = await Playwright.CreateAsync();
+                _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+                {
+                    Headless = true
+                });
+                _isInitialized = true;
+            }
 
-            return _browser;
+            return await _browser!.NewPageAsync();
         }
 
         public async Task<string?> DownloadPageContentAsync(string url)
         {
+            IPage? page = null;
             try
             {
-                var browser = await InitializeAsync();
-
-                var page = await browser.NewPageAsync();
+                page = await GetNewPageAsync();
                 var navigationResult = await page.GotoAsync(url);
 
                 if (navigationResult == null || !navigationResult.Ok)
@@ -48,6 +48,10 @@ namespace DimonSmart.WebScraper
             {
                 logger.LogError($"Error while downloading page at {url}: {ex.Message}");
                 return null;
+            }
+            finally
+            {
+                if (page != null) await page.CloseAsync();
             }
         }
 
