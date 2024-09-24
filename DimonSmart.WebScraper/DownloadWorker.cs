@@ -41,8 +41,15 @@ public class DownloadWorker
         foreach (var request in _requestQueue.GetConsumingEnumerable())
         {
             WorkerStatus.SetWorkingStatus(request.Url);
-            _logger.Information("Processing URL: {Url}", request.Url);
-            await DoDownload(request);
+            try
+            {
+                _logger.Information("Processing URL: {Url}", request.Url);
+                await DoDownload(request);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error processing URL: {Url}", request.Url);
+            }
             WorkerStatus.SetWaitStatus();
             _onDownloadCompleted();
         }

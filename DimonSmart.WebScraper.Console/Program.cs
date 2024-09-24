@@ -53,29 +53,4 @@ namespace DimonSmart.WebScraper.Console
             }
         }
     }
-
-    public class ConsoleHostedService : IHostedService
-    {
-        private readonly WebScraper _webScraper;
-
-        public ConsoleHostedService(WebScraper webScraper)
-        {
-            _webScraper = webScraper;
-        }
-
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            var downloadRequests = new List<DownloadRequest>
-                            {
-                                new DownloadRequest("https://visita.malaga.eu/en/", 1)
-                            };
-
-            await _webScraper.ScrapAsync(downloadRequests);
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-    }
 }
