@@ -33,7 +33,7 @@ namespace DimonSmart.WebScraper.Console
 
                         services
                             .AddHostedService<ConsoleHostedService>()
-                            .AddSingleton<IPageDownloader, PageDownloader>()
+                            .AddTransient<IPageDownloader, PageDownloader>()
                             .AddSingleton<ILinkExtractor, LinkExtractor>()
                             .AddSingleton<IPageStorage, PageStorage>()
                             .AddSingleton<IUrlQueueManager, UrlQueueManager>()

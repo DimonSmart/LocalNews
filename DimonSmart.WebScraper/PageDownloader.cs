@@ -1,48 +1,61 @@
-﻿using Microsoft.Playwright;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Playwright;
 
 namespace DimonSmart.WebScraper
 {
-    public class PageDownloader : IPageDownloader
+    public class PageDownloader(ILogger<PageDownloader> logger) : IPageDownloader, IAsyncDisposable
     {
+        private IBrowser? _browser;
+        private IPlaywright? _playwright;
+        private bool _isInitialized;
+
+        private async Task<IBrowser> InitializeAsync()
+        {
+            if (_isInitialized) return _browser ?? throw new InvalidOperationException("Browser is not initialized");
+            _isInitialized = true;
+
+            _playwright = await Playwright.CreateAsync();
+            _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            {
+                Headless = true
+            });
+
+            return _browser;
+        }
+
         public async Task<string?> DownloadPageContentAsync(string url)
         {
             try
             {
-                // Initialize Playwright
-                using var playwright = await Playwright.CreateAsync();
+                var browser = await InitializeAsync();
 
-                // Launch a headless browser instance
-                await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-                {
-                    Headless = true // Run in headless mode
-                });
-
-                // Create a new browser page
                 var page = await browser.NewPageAsync();
+                var navigationResult = await page.GotoAsync(url);
 
-                // Navigate to the URL
-                var response = await page.GotoAsync(url);
-
-                // Check if navigation was successful
-                if (!response.Ok)
+                if (navigationResult == null || !navigationResult.Ok)
                 {
-                    Console.WriteLine($"Failed to load page: {response.StatusText}");
+                    logger.LogError($"Failed to load page at {url}: {navigationResult?.StatusText}");
                     return null;
                 }
 
-                // Wait for the page to load completely
                 await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-                // Get the page content
                 var content = await page.ContentAsync();
 
                 return content;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error while downloading page: {ex.Message}");
+                logger.LogError($"Error while downloading page at {url}: {ex.Message}");
                 return null;
             }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_browser != null) await _browser.CloseAsync();
+            _playwright?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }
