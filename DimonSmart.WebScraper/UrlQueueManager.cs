@@ -19,19 +19,19 @@ public class UrlQueueManager(IUrlRepository repository, ILogger<UrlQueueManager>
 
         if (!IsValidWebPageUrl(urlWithoutFragment))
         {
-            logger.LogWarning("The URL '{Url}' is not a valid web page URL.", url);
+            logger.LogTrace("The URL '{Url}' is not a valid web page URL.", url);
             return false;
         }
 
         if (repository.ContainsProhibitedUrl(urlWithoutFragment))
         {
-            logger.LogWarning("The URL '{Url}' is prohibited and cannot be added.", url);
+            logger.LogTrace("The URL '{Url}' is prohibited and cannot be added.", url);
             return false;
         }
 
         if (!LangFilter(urlWithoutFragment))
         {
-            logger.LogWarning("The URL '{Url}' contains a prohibited language segment.", url);
+            logger.LogTrace("The URL '{Url}' contains a prohibited language segment.", url);
             return false;
         }
 
