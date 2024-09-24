@@ -38,7 +38,7 @@ namespace DimonSmart.WebScraper.Console
                             .AddSingleton<IPageStorage, PageStorage>()
                             .AddSingleton<IUrlQueueManager, UrlQueueManager>()
                             .AddSingleton<WebScraper>()
-                            .AddSingleton<IUrlRepository, FileUrlRepository>() // Register IUrlRepository
+                            .AddSingleton<IUrlRepository, FileUrlRepository>()
                             .Configure<WebScraperSettings>(configuration.GetSection("WebScraperSettings"))
                             .Configure<StorageSettings>(configuration.GetSection("StorageSettings"));
 
