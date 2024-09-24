@@ -1,33 +1,31 @@
-﻿namespace DimonSmart.WebScraper;
+﻿using Microsoft.Extensions.Options;
+
+namespace DimonSmart.WebScraper;
 
 public class FileUrlRepository : IUrlRepository
 {
-    private readonly string _filePath;
-    private readonly HashSet<string> _urls;
+    private readonly WebScraperSettings _settings;
+    private readonly HashSet<string> _urls = [];
 
-    public FileUrlRepository(string filePath)
+    public FileUrlRepository(IOptions<WebScraperSettings> settings)
     {
-        _filePath = filePath;
-        _urls = [];
+        _settings = settings.Value;
+        if (!File.Exists(_settings.ProhibitedUrlsFileName)) return;
 
-        if (!File.Exists(_filePath)) return;
-
-        foreach (var line in File.ReadAllLines(_filePath))
+        foreach (var line in File.ReadAllLines(_settings.ProhibitedUrlsFileName))
         {
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
             _urls.Add(line);
         }
     }
 
-    public bool Contains(string url)
+    public bool ContainsProhibitedUrl(string url)
     {
         return _urls.Contains(url);
     }
 
     public void Add(string url)
     {
-        if (_urls.Add(url))
-        {
-            File.AppendAllText(_filePath, url + "\n");
-        }
+        _urls.Add(url);
     }
 }

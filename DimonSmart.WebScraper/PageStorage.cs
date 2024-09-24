@@ -1,14 +1,19 @@
-﻿namespace DimonSmart.WebScraper;
+﻿using Microsoft.Extensions.Options;
+
+namespace DimonSmart.WebScraper;
 
 public class PageStorage : IPageStorage
 {
-    // Hardcoded path, later to be passed from config
+    private readonly string _storagePath;
 
-    private const string StoragePath = @"E:\DownloadedPages\";
+    public PageStorage(IOptions<StorageSettings> settings)
+    {
+        _storagePath = settings.Value.StoragePath;
+    }
 
     public async Task SavePageAsync(ScrapedWebPage page)
     {
-        var filePath = Path.Combine(StoragePath, $"{page.Id}.html");
+        var filePath = Path.Combine(_storagePath, $"{page.Id}.html");
         await File.WriteAllTextAsync(filePath, page.Content);
     }
 }

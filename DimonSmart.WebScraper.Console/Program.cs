@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
-using DimonSmart.WebScraper;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
@@ -21,20 +20,30 @@ namespace DimonSmart.WebScraper.Console
                 await Host.CreateDefaultBuilder(args)
                     .UseContentRoot(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!)
                     .UseSerilog()
+                    .ConfigureAppConfiguration((context, config) =>
+                    {
+                        config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                        config.AddUserSecrets<Program>();
+                        config.AddEnvironmentVariables();
+                        config.AddCommandLine(args);
+                    })
                     .ConfigureServices((hostContext, services) =>
                     {
+                        var configuration = hostContext.Configuration;
+
                         services
                             .AddHostedService<ConsoleHostedService>()
                             .AddSingleton<IPageDownloader, PageDownloader>()
                             .AddSingleton<ILinkExtractor, LinkExtractor>()
                             .AddSingleton<IPageStorage, PageStorage>()
                             .AddSingleton<IUrlQueueManager, UrlQueueManager>()
-                            .AddSingleton<WebScraper>();
-                    })
-                    .ConfigureHostConfiguration(hostConfig =>
-                    {
-                        hostConfig.AddEnvironmentVariables();
-                        hostConfig.AddCommandLine(args);
+                            .AddSingleton<WebScraper>()
+                            .AddSingleton<IUrlRepository, FileUrlRepository>() // Register IUrlRepository
+                            .Configure<WebScraperSettings>(configuration.GetSection("WebScraperSettings"))
+                            .Configure<StorageSettings>(configuration.GetSection("StorageSettings"));
+
+                        // Register Serilog.ILogger
+                        services.AddSingleton(Log.Logger);
                     })
                     .RunConsoleAsync();
             }
@@ -57,9 +66,9 @@ namespace DimonSmart.WebScraper.Console
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             var downloadRequests = new List<DownloadRequest>
-                {
-                    new DownloadRequest("https://www.travelchoreography.com/calle-larios-malaga/", 1)
-                };
+                            {
+                                new DownloadRequest("https://visita.malaga.eu/en/", 1)
+                            };
 
             await _webScraper.ScrapAsync(downloadRequests);
         }

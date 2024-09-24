@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using Moq;
 using Serilog;
 
@@ -52,8 +53,9 @@ public class WebScraperTests
             url == "https://example.com/subpage4"))).Returns(false);
 
         // Creating a WebScraper object with a download depth of 1
+        var settings = Options.Create(new WebScraperSettings { MaxThreads = 1 });
         var scraper = new WebScraper(
-            1,
+            settings,
             mockPageDownloader.Object,
             mockPageHandler.Object,
             mockPageStorage.Object,
@@ -62,9 +64,10 @@ public class WebScraperTests
         );
 
         // Act
-        var result = await scraper.ScrapAsync([
+        var result = await scraper.ScrapAsync(new List<DownloadRequest>
+        {
             new DownloadRequest("https://example.com", 1)
-        ]);
+        });
 
         // Assert
 

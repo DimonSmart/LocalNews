@@ -2,7 +2,7 @@
 
 public class ScraperWorkerStatus
 {
-    public string CurrentPageUrl { get; private set; }
+    public string CurrentPageUrl { get; private set; } = string.Empty;
     public int ProcessedFiles { get; private set; }
     public long TotalBytesProcessed { get; private set; }
     public WebScraperWorkerStatus Status { get; private set; }

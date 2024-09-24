@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace DimonSmart.WebScraper;
@@ -6,7 +7,6 @@ namespace DimonSmart.WebScraper;
 public class WebScraper
 {
     private readonly ILogger _logger;
-    private readonly int _maxThreads;
 
     private readonly IPageDownloader _pageDownloader;
     private readonly ILinkExtractor _pageHandler;
@@ -15,11 +15,12 @@ public class WebScraper
     private readonly ConcurrentBag<ScrapeResult> _results = new();
     private readonly IUrlQueueManager _urlQueueManager;
     private readonly List<DownloadWorker> _workers = new();
+    private readonly WebScraperSettings _webScraperSettings;
 
-    public WebScraper(int maxThreads, IPageDownloader pageDownloader, ILinkExtractor pageHandler,
+    public WebScraper(IOptions<WebScraperSettings> settings, IPageDownloader pageDownloader, ILinkExtractor pageHandler,
         IPageStorage pageStorage, ILogger logger, IUrlQueueManager urlQueueManager)
     {
-        _maxThreads = maxThreads;
+        _webScraperSettings = settings.Value;
         _pageDownloader = pageDownloader;
         _pageHandler = pageHandler;
         _pageStorage = pageStorage;
@@ -51,9 +52,9 @@ public class WebScraper
 
     private Task[] StartConsumers()
     {
-        var consumerTasks = new Task[_maxThreads];
+        var consumerTasks = new Task[_webScraperSettings.MaxThreads];
 
-        for (var i = 0; i < _maxThreads; i++)
+        for (var i = 0; i < _webScraperSettings.MaxThreads; i++)
         {
             var worker = new DownloadWorker(
                 _requestQueue,
