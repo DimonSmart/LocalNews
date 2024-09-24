@@ -1,20 +1,17 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace DimonSmart.WebScraper;
 
 public class UrlQueueManager(IUrlRepository repository, ILogger<UrlQueueManager> logger) : IUrlQueueManager
 {
-    private readonly HashSet<string> _addedUrls = new();
-
     private static readonly HashSet<string> LanguageCodes = new()
     {
         "af", "ar", "be", "bg", "ca", "cs", "da", "de", "el", "et", "fa", "fi", "fr", "he",
         "hi", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "ms", "nl", "no", "pl", "pt",
         "ro", "ru", "sk", "sl", "sq", "sr", "sv", "th", "tr", "uk", "vi", "zh"
     };
+
+    private readonly HashSet<string> _addedUrls = new();
 
     public bool CanAddUrl(string url)
     {
@@ -38,7 +35,7 @@ public class UrlQueueManager(IUrlRepository repository, ILogger<UrlQueueManager>
 
         if (!_addedUrls.Add(url))
         {
-            logger.LogInformation("The URL '{Url}' has already been added.", url);
+            logger.LogTrace("The URL '{Url}' has already been added.", url);
             return false;
         }
 
