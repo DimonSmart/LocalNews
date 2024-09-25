@@ -2,18 +2,32 @@
 
 namespace DimonSmart.WebScraper;
 
-public class PageStorage : IPageStorage
+public class PageStorage(IOptions<StorageSettings> settings, AppDbContext dbContext) : IPageStorage
 {
-    private readonly string _storagePath;
-
-    public PageStorage(IOptions<StorageSettings> settings)
-    {
-        _storagePath = settings.Value.StoragePath;
-    }
+    private readonly string _storagePath = settings.Value.StoragePath;
 
     public async Task SavePageAsync(ScrapedWebPage page)
     {
-        var filePath = Path.Combine(_storagePath, $"{page.Id}.html");
+        var directory1 = page.Id.ToString()[0].ToString();
+        var directory2 = page.Id.ToString()[1].ToString();
+        var folderPath = Path.Combine(_storagePath, directory1, directory2);
+        Directory.CreateDirectory(folderPath);
+
+        var fileName = $"{page.Id}.html";
+        var filePath = Path.Combine(folderPath, fileName);
         await File.WriteAllTextAsync(filePath, page.Content);
+
+        var fileRecord = new FileRecord
+        {
+            Id = page.Id,
+            FileName = fileName,
+            CreatedAt = DateTime.UtcNow,
+            Size = page.SizeInBytes,
+            FileType = "html",
+            Metadata = null
+        };
+
+        dbContext.Files.Add(fileRecord);
+        await dbContext.SaveChangesAsync();
     }
 }
