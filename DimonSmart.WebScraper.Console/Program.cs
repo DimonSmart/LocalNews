@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Serilog;
 
@@ -39,9 +40,9 @@ namespace DimonSmart.WebScraper.Console
                             .AddSingleton<IUrlQueueManager, UrlQueueManager>()
                             .AddSingleton<WebScraper>()
                             .AddSingleton<IUrlRepository, FileUrlRepository>()
+                            .AddDbContext<AppDbContext>(options => options.UseSqlite(configuration.GetConnectionString("FileStorageDb"), b => b.MigrationsAssembly("DimonSmart.WebScraper")))
                             .Configure<WebScraperSettings>(configuration.GetSection("WebScraperSettings"))
                             .Configure<StorageSettings>(configuration.GetSection("StorageSettings"));
-
                         // Register Serilog.ILogger
                         services.AddSingleton(Log.Logger);
                     })
