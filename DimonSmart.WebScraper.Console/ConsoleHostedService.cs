@@ -1,19 +1,28 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace DimonSmart.WebScraper.Console;
 
-public class ConsoleHostedService(WebScraper webScraper) : IHostedService
+public class ConsoleHostedService : IHostedService
 {
-    private readonly WebScraper _webScraper = webScraper;
+    private readonly IServiceProvider _serviceProvider;
+
+    public ConsoleHostedService(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        var webScraper = scope.ServiceProvider.GetRequiredService<WebScraper>();
+
         var downloadRequests = new List<DownloadRequest>
         {
             new DownloadRequest("https://visita.malaga.eu/en/", 2)
         };
 
-        await _webScraper.ScrapAsync(downloadRequests);
+        await webScraper.ScrapAsync(downloadRequests);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
