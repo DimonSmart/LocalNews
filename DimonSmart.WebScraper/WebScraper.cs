@@ -7,14 +7,13 @@ namespace DimonSmart.WebScraper;
 public class WebScraper
 {
     private readonly ILogger _logger;
-
     private readonly IPageDownloader _pageDownloader;
     private readonly ILinkExtractor _pageHandler;
     private readonly IPageStorage _pageStorage;
     private readonly BlockingCollection<DownloadRequest> _requestQueue = new();
-    private readonly ConcurrentBag<ScrapeResult> _results = new();
+    private readonly ConcurrentBag<ScrapeResult> _results = [];
     private readonly IUrlQueueManager _urlQueueManager;
-    private readonly List<DownloadWorker> _workers = new();
+    private readonly List<DownloadWorker> _workers = [];
     private readonly WebScraperSettings _webScraperSettings;
 
     public WebScraper(IOptions<WebScraperSettings> settings, IPageDownloader pageDownloader, ILinkExtractor pageHandler,

@@ -42,21 +42,20 @@ namespace DimonSmart.WebScraper.Console
                             .AddSingleton<IHostedService, ConsoleHostedService>()
                             .AddTransient<IPageDownloader, PageDownloader>()
                             .AddSingleton<ILinkExtractor, LinkExtractor>()
-                            .AddScoped<IPageStorage, PageStorage>()
                             .AddSingleton<IUrlQueueManager, UrlQueueManager>()
+                            .AddScoped<IPageStorage, PageStorage>()
                             .AddScoped<WebScraper>()
                             .AddScoped<IUrlRepository, FileUrlRepository>()
-                            .AddDbContext<AppDbContext>(options => options.UseSqlite(configuration.GetConnectionString("FileStorageDb"), b => b.MigrationsAssembly("DimonSmart.WebScraper")), ServiceLifetime.Transient)
+                            .AddDbContextFactory<AppDbContext>(options => options.UseSqlite(configuration.GetConnectionString("FileStorageDb"), b => b.MigrationsAssembly("DimonSmart.WebScraper")), ServiceLifetime.Transient)
                             .Configure<WebScraperSettings>(configuration.GetSection("WebScraperSettings"))
                             .Configure<StorageSettings>(configuration.GetSection("StorageSettings"));
-                        // Register Serilog.ILogger
                         services.AddSingleton(Log.Logger);
                     })
                     .Build();
 
                 using (var scope = host.Services.CreateScope())
                 {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext();
                     dbContext.Database.Migrate();
                 }
 

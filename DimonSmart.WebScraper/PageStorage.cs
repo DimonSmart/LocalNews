@@ -1,10 +1,18 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace DimonSmart.WebScraper;
 
-public class PageStorage(IOptions<StorageSettings> settings, AppDbContext dbContext) : IPageStorage
+public class PageStorage : IPageStorage
 {
-    private readonly string _storagePath = settings.Value.StoragePath;
+    private readonly string _storagePath;
+    private readonly IDbContextFactory<AppDbContext> _dbContextFactory;
+
+    public PageStorage(IOptions<StorageSettings> settings, IDbContextFactory<AppDbContext> dbContextFactory)
+    {
+        _storagePath = settings.Value.StoragePath;
+        _dbContextFactory = dbContextFactory;
+    }
 
     public async Task SavePageAsync(ScrapedWebPage page)
     {
@@ -27,6 +35,7 @@ public class PageStorage(IOptions<StorageSettings> settings, AppDbContext dbCont
             Metadata = null
         };
 
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         dbContext.Files.Add(fileRecord);
         await dbContext.SaveChangesAsync();
     }
