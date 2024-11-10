@@ -2,6 +2,6 @@
 
 public class ScrapeResult
 {
-    public string Url { get; set; }
-    public string PageContent { get; set; }
+    public required string Url { get; set; }
+    public required string PageContent { get; set; }
 }
