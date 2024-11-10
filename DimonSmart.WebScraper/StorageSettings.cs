@@ -2,6 +2,6 @@ namespace DimonSmart.WebScraper
 {
     public class StorageSettings
     {
-        public string StoragePath { get; set; }
+        public required string StoragePath { get; set; }
     }
 }
