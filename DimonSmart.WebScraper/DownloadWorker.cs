@@ -60,9 +60,8 @@ public class DownloadWorker
         var pageContent = await _pageDownloader.DownloadPageContentAsync(request.Url);
         if (pageContent == null) return;
 
-        long pageSize = pageContent.Length;
         _results.Add(new ScrapeResult { Url = request.Url, PageContent = pageContent });
-        WorkerStatus.AddProcessedData(pageSize);
+        WorkerStatus.AddProcessedData(pageContent.Length);
 
         var scrapedPage = new ScrapedWebPage(request.Url, pageContent);
         await _pageStorage.SavePageAsync(scrapedPage);

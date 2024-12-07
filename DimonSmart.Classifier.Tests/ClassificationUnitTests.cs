@@ -34,7 +34,7 @@ namespace DimonSmart.Classifier.Tests
                 await movies.UpsertAsync(movie);
             }
 
-            var query = "A family friendly movie";
+            var query = "A funny cartoon";
             var queryEmbedding = await generator.GenerateEmbeddingVectorAsync(query);
             var searchOptions = new VectorSearchOptions()
             {
