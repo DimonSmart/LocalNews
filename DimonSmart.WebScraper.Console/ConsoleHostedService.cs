@@ -19,7 +19,7 @@ public class ConsoleHostedService : IHostedService
 
         var downloadRequests = new List<DownloadRequest>
         {
-            new DownloadRequest("https://visita.malaga.eu/en/", 2)
+            new("https://visita.malaga.eu/en/", 2)
         };
 
         await webScraper.ScrapAsync(downloadRequests);
