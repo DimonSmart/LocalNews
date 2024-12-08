@@ -12,6 +12,7 @@ public class DownloadWorker
     private readonly IPageStorage _pageStorage;
     private readonly ILogger _logger;
     private readonly IUrlQueueManager _urlQueueManager;
+    private readonly IMainContentExtractor _mainContentExtractor;
     private readonly Action _onDownloadCompleted;
 
     public DownloadWorker(
@@ -22,6 +23,7 @@ public class DownloadWorker
         IPageStorage pageStorage,
         ILogger logger,
         IUrlQueueManager urlQueueManager,
+        IMainContentExtractor mainContentExtractor,
         Action onDownloadCompleted)
     {
         _requestQueue = requestQueue;
@@ -31,6 +33,7 @@ public class DownloadWorker
         _pageStorage = pageStorage;
         _logger = logger;
         _urlQueueManager = urlQueueManager;
+        _mainContentExtractor = mainContentExtractor;
         _onDownloadCompleted = onDownloadCompleted;
     }
 
@@ -58,13 +61,15 @@ public class DownloadWorker
     private async Task DoDownload(DownloadRequest request)
     {
         var pageContent = await _pageDownloader.DownloadPageContentAsync(request.Url);
-        if (pageContent == null) return;
+        if (string.IsNullOrWhiteSpace(pageContent)) return;
 
-        _results.Add(new ScrapeResult { Url = request.Url, PageContent = pageContent });
-        WorkerStatus.AddProcessedData(pageContent.Length);
-
-        var scrapedPage = new ScrapedWebPage(request.Url, pageContent);
-        await _pageStorage.SavePageAsync(scrapedPage);
+        var mainContent = _mainContentExtractor.ExtractMainContent(request.Url, pageContent);
+        if (mainContent != null)
+        {
+            _results.Add(new ScrapeResult { Url = request.Url, MainContent = mainContent });
+            WorkerStatus.AddProcessedData(pageContent.Length);
+            await _pageStorage.SavePageAsync(new ScrapedWebPage(request.Url, pageContent, mainContent));
+        }
 
         if (request.Level > 0)
         {

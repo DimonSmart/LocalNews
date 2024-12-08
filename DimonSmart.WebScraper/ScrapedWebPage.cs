@@ -1,10 +1,7 @@
 ﻿namespace DimonSmart.WebScraper;
 
-public class ScrapedWebPage(string url, string content)
+public record ScrapedWebPage(string Url, string HtmlContent, MainContent MainContent)
 {
-    public Guid Id { get; private set; } = Guid.NewGuid();
-    public string Url { get; set; } = url;
-    public string Content { get; set; } = content;
-    public DateTime DownloadedAt { get; set; } = DateTime.UtcNow;
-    public long SizeInBytes => Content?.Length ?? 0;
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public DateTime DownloadedAt { get; init; } = DateTime.UtcNow;
 }

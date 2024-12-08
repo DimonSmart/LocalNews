@@ -39,13 +39,14 @@ namespace DimonSmart.WebScraper.Console
                         var configuration = hostContext.Configuration;
 
                         services
+                            .AddSingleton<IMainContentExtractor, MainContentExtractor>()
                             .AddSingleton<IHostedService, ConsoleHostedService>()
                             .AddTransient<IPageDownloader, PageDownloader>()
                             .AddSingleton<ILinkExtractor, LinkExtractor>()
                             .AddSingleton<IUrlQueueManager, UrlQueueManager>()
+                            .AddSingleton<IUrlRepository, FileUrlRepository>()
                             .AddScoped<IPageStorage, PageStorage>()
                             .AddScoped<WebScraper>()
-                            .AddScoped<IUrlRepository, FileUrlRepository>()
                             .AddDbContextFactory<AppDbContext>(options => options.UseSqlite(configuration.GetConnectionString("FileStorageDb"), b => b.MigrationsAssembly("DimonSmart.WebScraper")), ServiceLifetime.Transient)
                             .Configure<WebScraperSettings>(configuration.GetSection("WebScraperSettings"))
                             .Configure<StorageSettings>(configuration.GetSection("StorageSettings"));

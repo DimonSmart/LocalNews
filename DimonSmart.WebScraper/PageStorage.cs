@@ -3,36 +3,27 @@ using Microsoft.Extensions.Options;
 
 namespace DimonSmart.WebScraper;
 
-public class PageStorage : IPageStorage
+public class PageStorage(IOptions<StorageSettings> settings, IDbContextFactory<AppDbContext> dbContextFactory) : IPageStorage
 {
-    private readonly string _storagePath;
-    private readonly IDbContextFactory<AppDbContext> _dbContextFactory;
-
-    public PageStorage(IOptions<StorageSettings> settings, IDbContextFactory<AppDbContext> dbContextFactory)
-    {
-        _storagePath = settings.Value.StoragePath;
-        _dbContextFactory = dbContextFactory;
-    }
+    private readonly string _storagePath = settings.Value.StoragePath;
+    private readonly IDbContextFactory<AppDbContext> _dbContextFactory = dbContextFactory;
 
     public async Task SavePageAsync(ScrapedWebPage page)
     {
         var directory1 = page.Id.ToString()[0].ToString();
         var directory2 = page.Id.ToString()[1].ToString();
         var folderPath = Path.Combine(_storagePath, directory1, directory2);
-        Directory.CreateDirectory(folderPath);
 
-        var fileName = $"{page.Id}.html";
-        var filePath = Path.Combine(folderPath, fileName);
-        await File.WriteAllTextAsync(filePath, page.Content);
+        Directory.CreateDirectory(folderPath);
+        await File.WriteAllTextAsync(Path.Combine(folderPath, $"{page.Id}.html"), page.HtmlContent);
+        await File.WriteAllTextAsync(Path.Combine(folderPath, $"{page.Id}.txt"), page.MainContent.Content);
 
         var fileRecord = new FileRecord
         {
             Id = page.Id,
-            FileName = fileName,
-            CreatedAt = DateTime.UtcNow,
-            Size = page.SizeInBytes,
-            FileType = "html",
-            Metadata = null
+            CreatedAt = page.DownloadedAt,
+            MainContentSize = page.MainContent.Content.Length,
+            HTMLContentSize = page.HtmlContent.Length
         };
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();

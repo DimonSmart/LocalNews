@@ -15,7 +15,7 @@ namespace DimonSmart.WebScraper.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
 
             modelBuilder.Entity("DimonSmart.WebScraper.FileRecord", b =>
                 {
@@ -26,18 +26,10 @@ namespace DimonSmart.WebScraper.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<long>("HTMLContentSize")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("FileType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Metadata")
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("Size")
+                    b.Property<long>("MainContentSize")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");

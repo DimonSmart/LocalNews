@@ -19,7 +19,8 @@ public class ConsoleHostedService : IHostedService
 
         var downloadRequests = new List<DownloadRequest>
         {
-            new("https://visita.malaga.eu/en/", 2)
+           // new("https://visita.malaga.eu/en/", 2)
+           new(@"https://visita.malaga.eu/en/what-to-see-and-do/blog/the-cathedral-of-santa-maria-de-la-encarnacion-treasures-and-curiosities-of-the-main-church-of-malaga-p2071", 0)
         };
 
         await webScraper.ScrapAsync(downloadRequests);

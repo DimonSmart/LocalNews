@@ -16,11 +16,9 @@ namespace DimonSmart.WebScraper.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    FileName = table.Column<string>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Size = table.Column<long>(type: "INTEGER", nullable: false),
-                    FileType = table.Column<string>(type: "TEXT", nullable: false),
-                    Metadata = table.Column<string>(type: "TEXT", nullable: true)
+                    MainContentSize = table.Column<long>(type: "INTEGER", nullable: false),
+                    HTMLContentSize = table.Column<long>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

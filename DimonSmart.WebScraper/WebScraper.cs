@@ -13,11 +13,12 @@ public class WebScraper
     private readonly BlockingCollection<DownloadRequest> _requestQueue = new();
     private readonly ConcurrentBag<ScrapeResult> _results = [];
     private readonly IUrlQueueManager _urlQueueManager;
+    private readonly IMainContentExtractor _contentExtractor;
     private readonly List<DownloadWorker> _workers = [];
     private readonly WebScraperSettings _webScraperSettings;
 
     public WebScraper(IOptions<WebScraperSettings> settings, IPageDownloader pageDownloader, ILinkExtractor pageHandler,
-        IPageStorage pageStorage, ILogger logger, IUrlQueueManager urlQueueManager)
+        IPageStorage pageStorage, ILogger logger, IUrlQueueManager urlQueueManager, IMainContentExtractor contentExtractor)
     {
         _webScraperSettings = settings.Value;
         _pageDownloader = pageDownloader;
@@ -25,6 +26,7 @@ public class WebScraper
         _pageStorage = pageStorage;
         _logger = logger;
         _urlQueueManager = urlQueueManager;
+        _contentExtractor = contentExtractor;
     }
 
     public async Task<IReadOnlyCollection<ScrapeResult>> ScrapAsync(IEnumerable<DownloadRequest> initialRequests)
@@ -63,11 +65,12 @@ public class WebScraper
                 _pageStorage,
                 _logger,
                 _urlQueueManager,
+                _contentExtractor,
                 CheckCompletion);
 
             _workers.Add(worker);
 
-            consumerTasks[i] = Task.Run(() => worker.RunAsync());
+            consumerTasks[i] = Task.Run(worker.RunAsync);
         }
 
         return consumerTasks;

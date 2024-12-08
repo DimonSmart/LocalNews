@@ -10,6 +10,8 @@ public class WebScraperTests
     public async Task Test_WebScraper_ProcessesRequests_With_Depth_Restriction()
     {
         // Arrange
+        var contentExtractor = new MainContentExtractor();
+
         var mockPageDownloader = new Mock<IPageDownloader>();
         var mockPageHandler = new Mock<ILinkExtractor>();
         var mockPageStorage = new Mock<IPageStorage>();
@@ -60,7 +62,8 @@ public class WebScraperTests
             mockPageHandler.Object,
             mockPageStorage.Object,
             mockLogger.Object,
-            mockUrlQueueManager.Object
+            mockUrlQueueManager.Object,
+            contentExtractor
         );
 
         // Act
@@ -82,8 +85,8 @@ public class WebScraperTests
         mockPageDownloader.Verify(pd => pd.DownloadPageContentAsync("https://example.com/subpage3"), Times.Never);
         mockPageDownloader.Verify(pd => pd.DownloadPageContentAsync("https://example.com/subpage4"), Times.Never);
 
-        // Verify that saves were called only for 3 pages
-        mockPageStorage.Verify(ps => ps.SavePageAsync(It.IsAny<ScrapedWebPage>()), Times.Exactly(3));
+        // Verify that saves were called only for 0 pages (as no content)
+        mockPageStorage.Verify(ps => ps.SavePageAsync(It.IsAny<ScrapedWebPage>()), Times.Exactly(0));
 
         // Verify that UrlQueueManager was called with the correct URLs
         mockUrlQueueManager.Verify(um => um.CanAddUrl("https://example.com/page1"), Times.Once);
