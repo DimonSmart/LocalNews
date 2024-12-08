@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DimonSmart.WebScraper.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241208090606_InitialCreate")]
+    [Migration("20241208135336_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -34,6 +34,10 @@ namespace DimonSmart.WebScraper.Migrations
 
                     b.Property<long>("MainContentSize")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 

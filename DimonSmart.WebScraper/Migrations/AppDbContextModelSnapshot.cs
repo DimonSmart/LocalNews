@@ -32,6 +32,10 @@ namespace DimonSmart.WebScraper.Migrations
                     b.Property<long>("MainContentSize")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.ToTable("Files");

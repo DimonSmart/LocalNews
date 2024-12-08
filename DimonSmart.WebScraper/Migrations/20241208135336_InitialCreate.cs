@@ -18,7 +18,8 @@ namespace DimonSmart.WebScraper.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     MainContentSize = table.Column<long>(type: "INTEGER", nullable: false),
-                    HTMLContentSize = table.Column<long>(type: "INTEGER", nullable: false)
+                    HTMLContentSize = table.Column<long>(type: "INTEGER", nullable: false),
+                    Title = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

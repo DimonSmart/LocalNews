@@ -23,7 +23,8 @@ public class PageStorage(IOptions<StorageSettings> settings, IDbContextFactory<A
             Id = page.Id,
             CreatedAt = page.DownloadedAt,
             MainContentSize = page.MainContent.Content.Length,
-            HTMLContentSize = page.HtmlContent.Length
+            HTMLContentSize = page.HtmlContent.Length,
+            Title = page.MainContent.Title
         };
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
